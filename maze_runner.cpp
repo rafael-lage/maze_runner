@@ -71,7 +71,7 @@ pos_t load_maze(const char* file_name) {
 			matriz[i+1][j] = c
 			// Se o valor for 'e' salvar o valor em initial_pos
 			if(c == 'e'){
-				initial_pos.i = i;
+				initial_pos.i = i+1;
 				initial_pos.j = j;
 			}
 		}
