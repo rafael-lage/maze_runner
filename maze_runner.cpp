@@ -99,7 +99,22 @@ bool walk(pos_t pos) {
 		// Marcar a posição atual com o símbolo '.'
 		// Limpa a tela
 		// Imprime o labirinto
-		
+	
+	pos_t next_pos;
+
+	//tenta andar para frente
+	next_pos.i = pos.i;
+	next_pos.j = pos.j + 1;
+
+	maze[pos.i][pos.j] = '.';
+
+	if(next_pos.i > 0 && next_pos.i < num_rows && next_pos.j > num_cols && maze[next_pos.i][next_pos.j] == 'x'){
+		valid_positions.push(next_pos);
+	}
+
+
+	if(maze[pos.i][pos.j+1] == 'x')
+
 		/* Dado a posição atual, verifica quais sao as próximas posições válidas
 			Checar se as posições abaixo são validas (i>0, i<num_rows, j>0, j <num_cols)
 		 	e se são posições ainda não visitadas (ou seja, caracter 'x') e inserir
