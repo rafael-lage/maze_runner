@@ -36,6 +36,17 @@ std::stack<pos_t> valid_positions;
 //    valid_positions.pop();
 
 
+//Checar se as posições abaixo são validas (i>0, i<num_rows, j>0, j <num_cols)
+//funcao verifica se pos é valida
+bool isValid(pos_t pos){
+	if(pos.int i > 0 && pos.i < num_rows && pos.j > 0 && pos.j < num_cols){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
 // Função que le o labirinto de um arquivo texto, carrega em 
 // memória e retorna a posição inicial
 pos_t load_maze(const char* file_name) {
@@ -99,22 +110,31 @@ bool walk(pos_t pos) {
 		// Marcar a posição atual com o símbolo '.'
 		// Limpa a tela
 		// Imprime o labirinto
-	
-	pos_t next_pos;
-
-	//tenta andar para frente
-	next_pos.i = pos.i;
-	next_pos.j = pos.j + 1;
-
 	maze[pos.i][pos.j] = '.';
+	system("clear");
+	print_maze();
 
-	if(next_pos.i > 0 && next_pos.i < num_rows && next_pos.j > num_cols && maze[next_pos.i][next_pos.j] == 'x'){
-		valid_positions.push(next_pos);
+	pos_t rightPos;
+	rightPos.i = i;
+	rightPos.j = j+1;
+
+
+	if(maze[rightPos.i][rightPos.j] == 'x' && isValid(rightPos)){
+		valid_positions.push(rightPos);
 	}
+	if(maze[pos.i][pos.j+1] == 's'){
+		return(true);
+	}
+	pos_t leftPos;
+	leftPos.i = i;
+	leftPos.j = j-1;
 
-
-	if(maze[pos.i][pos.j+1] == 'x')
-
+	if(maze[leftPos.i][leftPos.j] == 'x' && isValid(leftPos)){
+		valid_positions.push(leftPos);
+	}
+	if(maze[pos.i][pos.j+1] == 's'){
+		return(true);
+	}
 		/* Dado a posição atual, verifica quais sao as próximas posições válidas
 			Checar se as posições abaixo são validas (i>0, i<num_rows, j>0, j <num_cols)
 		 	e se são posições ainda não visitadas (ou seja, caracter 'x') e inserir
