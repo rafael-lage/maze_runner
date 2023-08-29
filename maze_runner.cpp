@@ -2,6 +2,8 @@
 #include <stack>
 #include <iostream>
 #include <cstdio>
+#include <chrono>
+#include <thread>
 
 // Matriz de char representnado o labirinto
 char** maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
@@ -48,6 +50,16 @@ bool isValid(pos_t pos){
 	}
 }
 
+// Função que imprime o labirinto
+void print_maze() {
+	for (int i = 0; i < num_rows; ++i) {
+		for (int j = 0; j < num_cols; ++j) {
+			printf("%c", maze[i][j]);
+		}
+		printf("\n");
+	}
+}
+
 // Função que le o labirinto de um arquivo texto, carrega em 
 // memória e retorna a posição inicial
 pos_t load_maze(const char* file_name) {
@@ -74,32 +86,29 @@ pos_t load_maze(const char* file_name) {
     for (int i = 0; i < num_rows; i++) {
         maze[i] = new char[num_cols];
     }
-	
+
 	for (int i = 0; i < num_rows; ++i) {
 		for (int j = 0; j < num_cols; ++j) {
 			char c = fgetc(file);
 			// Le o valor da linha i+1,j do arquivo e salva na posição maze[i][j]
-			maze[i+1][j] = c;
+			//printf("%c",c);
+			maze[i][j] = c;
+			printf("maze[%d][%d] = %c\n",i,j,maze[i][j]);
 			// Se o valor for 'e' salvar o valor em initial_pos
 			if(c == 'e'){
-				initial_pos.i = i+1;
+				initial_pos.i = i;
 				initial_pos.j = j;
+				//printf("Coordenada inicial i = %\nj = %d", i,j);
 			}
 		}
 	}
+	//printf("\nPrintando o labirinto\n");
+	//print_maze();
     fclose(file);
 	return initial_pos;
 }
 
-// Função que imprime o labirinto
-void print_maze() {
-	for (int i = 0; i < num_rows; ++i) {
-		for (int j = 0; j < num_cols; ++j) {
-			printf("%c", maze[i][j]);
-		}
-		printf("\n");
-	}
-}
+
 //funcao verifica se a posicao é valida
 bool checkPos(pos_t pos){
 	if(maze[pos.i][pos.j] == 'x' && isValid(pos)){
@@ -121,6 +130,7 @@ bool walk(pos_t pos) {
 		// Marcar a posição atual com o símbolo '.'
 		// Limpa a tela
 		// Imprime o labirinto
+		//printf("isFirst = %d\n",isFirst);
 	pos_t currentPos;
 	if(isFirst){
 		currentPos.i = pos.i;
@@ -134,6 +144,7 @@ bool walk(pos_t pos) {
 	maze[currentPos.i][currentPos.j] = '.';
 	system("clear");
 	print_maze();
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	pos_t rightPos, leftPos, upPos,downPos;
 	rightPos.i = currentPos.i;
@@ -179,7 +190,9 @@ bool walk(pos_t pos) {
 
 int main(int argc, char* argv[]) {
 	// carregar o labirinto com o nome do arquivo recebido como argumento
-	pos_t initial_pos = load_maze(argv[1]);
+	pos_t initial_pos = load_maze("../data/maze.txt");
+	//printf("\nPrintado o labirinto\n");	
+	//print_maze();
 	// chamar a função de navegação
 	bool exit_found = walk(initial_pos);
 	while(!exit_found){
