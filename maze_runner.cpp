@@ -37,9 +37,10 @@ std::stack<pos_t> valid_positions;
 
 
 //Checar se as posições abaixo são validas (i>0, i<num_rows, j>0, j <num_cols)
+
 //funcao verifica se pos é valida
 bool isValid(pos_t pos){
-	if(pos.int i > 0 && pos.i < num_rows && pos.j > 0 && pos.j < num_cols){
+	if(pos.i > 0 && pos.i < num_rows && pos.j > 0 && pos.j < num_cols){
 		return true;
 	}
 	else{
@@ -53,11 +54,9 @@ pos_t load_maze(const char* file_name) {
 	pos_t initial_pos;
 
 	// Abre o arquivo para leitura (fopen)
-		FILE *file = fopen("matriz.txt", "r"); // Abre o arquivo para leitura
-
+	FILE *file = fopen(file_name, "r"); // Abre o arquivo para leitura
     if (file == nullptr) {
         std::cerr << "Erro ao abrir o arquivo." << std::endl;
-        return 1;
     }
 
 	// Le o numero de linhas e colunas (fscanf) 
@@ -66,20 +65,21 @@ pos_t load_maze(const char* file_name) {
     if (fscanf(file, "%d %d", &num_rows, &num_cols) != 2) {
         std::cerr << "Erro ao ler o número de linhas e colunas." << std::endl;
         fclose(file);
-        return 1;
     }
 
 	// Aloca a matriz maze (malloc)
-	**maze = (char **)malloc(num_rows * sizeof(char *)); // Aloca as linhas da matriz
-	for (int i = 0; i < num_rows; ++i)
-		maze[i] = (int *)malloc(num_cols * sizeof(int));
-		// Aloca cada linha da matriz
+	// Aloca as linhas da matriz
+    char **maze = new char *[num_rows];
+    // Aloca as colunas para cada linha da matriz
+    for (int i = 0; i < num_rows; i++) {
+        maze[i] = new char[num_cols];
+    }
 	
 	for (int i = 0; i < num_rows; ++i) {
 		for (int j = 0; j < num_cols; ++j) {
 			char c = fgetc(file);
 			// Le o valor da linha i+1,j do arquivo e salva na posição maze[i][j]
-			matriz[i+1][j] = c
+			maze[i+1][j] = c;
 			// Se o valor for 'e' salvar o valor em initial_pos
 			if(c == 'e'){
 				initial_pos.i = i+1;
@@ -100,41 +100,60 @@ void print_maze() {
 		printf("\n");
 	}
 }
-
+//funcao verifica se a posicao é valida
+bool checkPos(pos_t pos){
+	if(maze[pos.i][pos.j] == 'x' && isValid(pos)){
+		valid_positions.push(pos);
+	}
+	else if(maze[pos.i][pos.j] == 's'){
+		return(true);
+	}
+	return(false);
+}
 
 // Função responsável pela navegação.
 // Recebe como entrada a posição initial e retorna um booleando indicando se a saída foi encontrada
+bool isFirst = true;
+bool isEnd = false;
 bool walk(pos_t pos) {
 	
 	// Repita até que a saída seja encontrada ou não existam mais posições não exploradas
 		// Marcar a posição atual com o símbolo '.'
 		// Limpa a tela
 		// Imprime o labirinto
-	maze[pos.i][pos.j] = '.';
+	pos_t currentPos;
+	if(isFirst){
+		currentPos.i = pos.i;
+		currentPos.j = pos.j;
+		isFirst = false;
+	}
+	else if(!valid_positions.empty()){
+		currentPos = valid_positions.top();
+		valid_positions.pop();
+	}
+	maze[currentPos.i][currentPos.j] = '.';
 	system("clear");
 	print_maze();
 
-	pos_t rightPos;
-	rightPos.i = i;
-	rightPos.j = j+1;
+	pos_t rightPos, leftPos, upPos,downPos;
+	rightPos.i = currentPos.i;
+	rightPos.j = currentPos.j+1;
 
+	leftPos.i = currentPos.i;
+	leftPos.j = currentPos.j-1;
+	
+	upPos.i = currentPos.i+1;
+	upPos.j = currentPos.j;
+	
+	downPos.i = currentPos.i-1;
+	downPos.j = currentPos.j;
 
-	if(maze[rightPos.i][rightPos.j] == 'x' && isValid(rightPos)){
-		valid_positions.push(rightPos);
-	}
-	if(maze[pos.i][pos.j+1] == 's'){
-		return(true);
-	}
-	pos_t leftPos;
-	leftPos.i = i;
-	leftPos.j = j-1;
-
-	if(maze[leftPos.i][leftPos.j] == 'x' && isValid(leftPos)){
-		valid_positions.push(leftPos);
-	}
-	if(maze[pos.i][pos.j+1] == 's'){
-		return(true);
-	}
+	isEnd = checkPos(rightPos);
+	isEnd = checkPos(leftPos);
+	isEnd = checkPos(upPos);
+	isEnd = checkPos(downPos);
+	
+	return (isEnd);
 		/* Dado a posição atual, verifica quais sao as próximas posições válidas
 			Checar se as posições abaixo são validas (i>0, i<num_rows, j>0, j <num_cols)
 		 	e se são posições ainda não visitadas (ou seja, caracter 'x') e inserir
@@ -151,11 +170,11 @@ bool walk(pos_t pos) {
 		// Verifica se a pilha de posições nao esta vazia 
 		//Caso não esteja, pegar o primeiro valor de  valid_positions, remove-lo e chamar a funçao walk com esse valor
 		// Caso contrario, retornar falso
+		/*
 		if (!valid_positions.empty()) {
 			pos_t next_position = valid_positions.top();
 			valid_positions.pop();
-		}
-	return false;
+		}*/
 }
 
 int main(int argc, char* argv[]) {
@@ -163,8 +182,9 @@ int main(int argc, char* argv[]) {
 	pos_t initial_pos = load_maze(argv[1]);
 	// chamar a função de navegação
 	bool exit_found = walk(initial_pos);
-	
+	while(!exit_found){
+		walk(initial_pos);
+	}
 	// Tratar o retorno (imprimir mensagem)
-	
 	return 0;
 }
