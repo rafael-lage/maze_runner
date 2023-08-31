@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
 	bool exit_found = walk(initial_pos);
 	while(!exit_found){
 		exit_found = walk(initial_pos);
-		if(valid_positions.empty()){
+		if(!exit_found && valid_positions.empty()){
 			printf("\nNao possui saida\n");
 			return(0);
 		}
