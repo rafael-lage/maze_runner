@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <chrono>
 #include <thread>
+#include <fstream>
+#include <string>
+#include <vector>
 
 // Matriz de char representnado o labirinto
 char** maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
@@ -73,38 +76,35 @@ pos_t load_maze(const char* file_name) {
 
 	// Le o numero de linhas e colunas (fscanf) 
 	// e salva em num_rows e num_cols
-    int num_rows, num_cols;
     if (fscanf(file, "%d %d", &num_rows, &num_cols) != 2) {
         std::cerr << "Erro ao ler o número de linhas e colunas." << std::endl;
         fclose(file);
     }
-
-	// Aloca a matriz maze (malloc)
-	// Aloca as linhas da matriz
-    char **maze = new char *[num_rows];
     // Aloca as colunas para cada linha da matriz
-    for (int i = 0; i < num_rows; i++) {
-        maze[i] = new char[num_cols];
-    }
-
+    maze = new char *[num_rows];
+		for (int i = 0; i < num_rows; i++) {
+    maze[i] = new char[num_cols];
+}
+	char d = fgetc(file);
+	
 	for (int i = 0; i < num_rows; ++i) {
 		for (int j = 0; j < num_cols; ++j) {
 			char c = fgetc(file);
 			// Le o valor da linha i+1,j do arquivo e salva na posição maze[i][j]
-			//printf("%c",c);
 			maze[i][j] = c;
-			printf("maze[%d][%d] = %c\n",i,j,maze[i][j]);
 			// Se o valor for 'e' salvar o valor em initial_pos
 			if(c == 'e'){
 				initial_pos.i = i;
 				initial_pos.j = j;
-				//printf("Coordenada inicial i = %\nj = %d", i,j);
 			}
+			//printf("maze[%d][%d] = %c\n", i, j, maze[i][j]);
 		}
+		d = fgetc(file);
 	}
+
+    fclose(file);
 	//printf("\nPrintando o labirinto\n");
 	//print_maze();
-    fclose(file);
 	return initial_pos;
 }
 
@@ -190,14 +190,18 @@ bool walk(pos_t pos) {
 
 int main(int argc, char* argv[]) {
 	// carregar o labirinto com o nome do arquivo recebido como argumento
-	pos_t initial_pos = load_maze("../data/maze.txt");
-	//printf("\nPrintado o labirinto\n");	
-	//print_maze();
+	pos_t initial_pos = load_maze("../data/maze2.txt");
 	// chamar a função de navegação
 	bool exit_found = walk(initial_pos);
 	while(!exit_found){
 		walk(initial_pos);
 	}
+
+	for (int i = 0; i < num_rows; i++) {
+    	delete[] maze[i];
+	}
+	delete[] maze;
+	
 	// Tratar o retorno (imprimir mensagem)
 	return 0;
 }
