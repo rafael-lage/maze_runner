@@ -45,7 +45,7 @@ std::stack<pos_t> valid_positions;
 
 //funcao verifica se pos é valida
 bool isValid(pos_t pos){
-	if(pos.i > 0 && pos.i < num_rows && pos.j > 0 && pos.j < num_cols){
+	if(pos.i >= 0 && pos.i < num_rows && pos.j >= 0 && pos.j < num_cols){
 		return true;
 	}
 	else{
@@ -111,11 +111,13 @@ pos_t load_maze(const char* file_name) {
 
 //funcao verifica se a posicao é valida
 bool checkPos(pos_t pos){
-	if(maze[pos.i][pos.j] == 'x' && isValid(pos)){
-		valid_positions.push(pos);
-	}
-	else if(maze[pos.i][pos.j] == 's'){
-		return(true);
+	if(isValid(pos)){
+		if(maze[pos.i][pos.j] == 'x' ){
+			valid_positions.push(pos);
+		}
+		if(maze[pos.i][pos.j] == 's'){
+			return(true);
+		}
 	}
 	return(false);
 }
@@ -153,16 +155,16 @@ bool walk(pos_t pos) {
 	leftPos.i = currentPos.i;
 	leftPos.j = currentPos.j-1;
 	
-	upPos.i = currentPos.i+1;
+	upPos.i = currentPos.i-1;
 	upPos.j = currentPos.j;
 	
-	downPos.i = currentPos.i-1;
+	downPos.i = currentPos.i+1;
 	downPos.j = currentPos.j;
 
-	isEnd = checkPos(rightPos);
-	isEnd = checkPos(leftPos);
-	isEnd = checkPos(upPos);
-	isEnd = checkPos(downPos);
+	if(!isEnd) isEnd = checkPos(rightPos);
+	if(!isEnd) isEnd = checkPos(leftPos);
+	if(!isEnd) isEnd = checkPos(upPos);
+	if(!isEnd) isEnd = checkPos(downPos);
 	
 	return (isEnd);
 		/* Dado a posição atual, verifica quais sao as próximas posições válidas
@@ -190,17 +192,25 @@ bool walk(pos_t pos) {
 
 int main(int argc, char* argv[]) {
 	// carregar o labirinto com o nome do arquivo recebido como argumento
-	pos_t initial_pos = load_maze("../data/maze2.txt");
+	//pos_t initial_pos = load_maze("../data/maze7.txt");
+	pos_t initial_pos = load_maze(argv[1]);
 	// chamar a função de navegação
 	bool exit_found = walk(initial_pos);
 	while(!exit_found){
-		walk(initial_pos);
+		exit_found = walk(initial_pos);
+		if(valid_positions.empty()){
+			printf("\nNao possui saida\n");
+			return(0);
+		}
 	}
+	
 
 	for (int i = 0; i < num_rows; i++) {
     	delete[] maze[i];
 	}
 	delete[] maze;
+	
+	printf("\nSaida encontrada\n");
 	
 	// Tratar o retorno (imprimir mensagem)
 	return 0;
