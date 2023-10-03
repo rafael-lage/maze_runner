@@ -7,7 +7,9 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <mutex>
 
+std:: mutex print_mutex;
 
 // Matriz de char representnado o labirinto
 char** maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
@@ -43,6 +45,10 @@ std::stack<pos_t> valid_positions;
 
 
 //Checar se as posições abaixo são validas (i>0, i<num_rows, j>0, j <num_cols)
+
+//prototipos
+bool walk(pos_t pos);
+bool checkPos(pos_t pos);
 
 //funcao verifica se pos é valida
 bool isValid(pos_t pos){
@@ -109,14 +115,19 @@ pos_t load_maze(const char* file_name) {
 	return initial_pos;
 }
 
+bool isFirst = true;
+bool isEnd = false;
 
 //funcao verifica se a posicao é valida
 bool checkPos(pos_t pos){
 	if(isValid(pos)){
 		if(maze[pos.i][pos.j] == 'x' ){
 			valid_positions.push(pos);
+			std::thread new_walker(walk,pos);
+			new_walker.detach();
 		}
 		if(maze[pos.i][pos.j] == 's'){
+			isEnd = true;
 			return(true);
 		}
 	}
@@ -126,9 +137,8 @@ bool checkPos(pos_t pos){
 bool exit_found = 0;
 // Função responsável pela navegação.
 // Recebe como entrada a posição initial e retorna um booleando indicando se a saída foi encontrada
-bool isFirst = true;
-bool isEnd = false;
-bool walk(pos_t pos) {
+
+bool walk(pos_t pos){
 	
 	// Repita até que a saída seja encontrada ou não existam mais posições não exploradas
 		// Marcar a posição atual com o símbolo '.'
@@ -149,10 +159,11 @@ bool walk(pos_t pos) {
 	}
 	
 	maze[currentPos.i][currentPos.j] = '.';
+	print_mutex.lock();
 	system("clear");
 	print_maze();
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	print_mutex.unlock();
 	pos_t rightPos, leftPos, upPos,downPos;
 	rightPos.i = currentPos.i;
 	rightPos.j = currentPos.j+1;
@@ -167,23 +178,31 @@ bool walk(pos_t pos) {
 	downPos.j = currentPos.j;
 
 	//Adiciona os valores ao redor no vetor de posicoes
-	if(!isEnd) isEnd = checkPos(rightPos);
-	if(!isEnd) isEnd = checkPos(leftPos);
-	if(!isEnd) isEnd = checkPos(upPos);
-	if(!isEnd) isEnd = checkPos(downPos);
+	
+	/*
+	std::thread checkRight(checkPos, rightPos);
+	std::thread checkLeft(checkPos, leftPos);
+	std::thread checkUp (checkPos, upPos);
+	std::thread checkDown(checkPos, downPos);
+	*/
+	
+	if(!isEnd) checkPos(rightPos);
+	if(!isEnd) checkPos(leftPos);
+	if(!isEnd) checkPos(upPos);
+	if(!isEnd) checkPos(downPos);
+
 	
 	exit_found = isEnd;
 
 	return (isEnd);
-
 }
 
 
 
 int main(int argc, char* argv[]) {
 	// carregar o labirinto com o nome do arquivo recebido como argumento
-	pos_t initial_pos = load_maze("../data/maze7.txt");
-	//pos_t initial_pos = load_maze(argv[1]);
+	//pos_t initial_pos = load_maze("../data/maze4.txt");
+	pos_t initial_pos = load_maze(argv[1]);
 	// chamar a função de navegação
 	//bool exit_found = walk(initial_pos);
 	
@@ -194,10 +213,12 @@ int main(int argc, char* argv[]) {
 		
 		walker.join();
 		//walker.detach();
+		
+		/*
 		if(!exit_found && valid_positions.empty()){
 			printf("\nNao possui saida\n");
 			return(0);
-		}
+		}*/
 	}
 
 	for (int i = 0; i < num_rows; i++) {
